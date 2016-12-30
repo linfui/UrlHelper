@@ -1,0 +1,11 @@
+{
+  "name": "url-helper",
+  "version": "1.0.0",
+  "description": "url helper for query string and hash.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Leo Lin",
+  "license": "ISC"
+}

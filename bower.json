@@ -1,0 +1,20 @@
+{
+  "name": "bower.json",
+  "description": "url helper for query string and hash.",
+  "main": "index.js",
+  "authors": [
+    "Leo Lin"
+  ],
+  "license": "ISC",
+  "homepage": "",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "qunit": "^2.1.0"
+  }
+}
