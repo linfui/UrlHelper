@@ -1,18 +1,14 @@
 ﻿/* url-helper.js, v1.0.0.0 (c) 2016  Leo
  * @license MIT */
 
- ;(function() {
-
-    var location = window.location,
-        oldURL = location.href,
-        oldHash = location.hash;
-
+; (function () {
     var urlHelper = {
         // Current version.
         version: '1.0.0',
         /**
-        * http://test.example.com:8080/some/path => test.www.example.com:8080
-        * @param {string}
+        * http://test.example.com:8080/some/path?a=b#c=d => test.www.example.com:8080
+        * @param {string} E.G. http://test.example.com:8080/some/path
+        * @return {string} E.G. test.www.example.com:8080
         */
         getHost: function (url) {
             var url = url || window.location.toString();
@@ -23,8 +19,9 @@
             return url;
         },
         /**
-        * http://test.example.com:8080/some/path => test.www.example.com
-        * @param {string}
+        * http://test.example.com:8080/some/path?a=b#c=d => test.www.example.com
+        * @param {string}   http://test.example.com:8080/some/path
+        * @return {string} E.G. test.www.example.com
         */
         getHostname: function (url) {
             var url = url || window.location.toString();
@@ -35,8 +32,9 @@
             return url;
         },
         /**
-        * http://test.example.com:8080/some/path => http
-        * @param {string}
+        * http://test.example.com:8080/some/path?a=b#c=d => http
+        * @param {string}    http://test.example.com:8080/some/path
+        * @return {string} E.G. http, https
         */
         getProtocol: function (url) {
             var url = url || window.location.toString();
@@ -47,16 +45,18 @@
             return protocol;
         },
         /**
-        * http://test.example.com:8080/some/path => /some/path
-        * @param {string}
+        * http://test.example.com:8080/some/path?a=b#c=d => /some/path
+        * @param {string}   http://test.example.com:8080/some/path?a=b#c=d
+        * @return {string} E.G. /some/path
         */
         getPathName: function (url) {
             return
         },
         /**
-        * http://test.example.com:8080/some/path => 8080
-        * http://test.example.com/some/path => ""
+        * http://test.example.com:8080/some/path?a=b#c=d => 8080
+        * http://test.example.com/some/path?a=b#c=d => 80, 443
         * @param {string}
+        * @return {string} E.G. 80, 443
         */
         getPort: function (url) {
             var url = url || window.location.toString();
@@ -69,22 +69,25 @@
             return port;
         },
         /**
-         * @param {string} E.G. http://test.example.com:8080/some/path?a=b#a=b
-         * @return {string} E.G. ?a=b#a=b
+        * http://test.example.com:8080/some/path?a=b#c=d => ?a=b
+         * @param {string} E.G. http://test.example.com:8080/some/path?a=b#c=d
+         * @return {string} E.G. ?a=b
          */
         getSearch: function () {
             return location.hash.split('#')[1];
         },
         /**
-         * @param {string} E.G. http://test.example.com:8080/some/path#a=b
-         * @return {string} E.G. #a=b
+        * http://test.example.com:8080/some/path?a=b#c=d => #c=d
+         * @param {string} E.G. http://test.example.com:8080/some/path?a=b#c=d
+         * @return {string} E.G. #c=d
          */
-        getHash: function () {
+        getHashStr: function () {
             return location.hash.split('#')[1];
         },
         /**
-         * set Hash
+        * http://test.example.com:8080/some/path?a=b#c=d => #c=d
          * @param {string}
+         * @return {string} E.G. ?a=b#a=b
          */
         setHashStr: function (hashStr) {
             location.hash = '#' + hashStr;
@@ -116,10 +119,11 @@
         /**
          * 获取完整的Hash内容，并应设为对象
          *
+         * @param  {string} key 要获取的Hash的键值
          * @return {Object} Hash的内容部分
          */
-        getHashObject: function () {
-            var hashStr = this.getHashStr();
+        getHashs: function () {
+            var hashStr = this.getHash();
             var result = {};
             if (hashStr) {
                 var para = hashStr.split('&');
@@ -136,6 +140,7 @@
          * 将对象复制给Hash
          *
          * @param {Object} hashObject
+         * @return {Object} Hash的内容部分
          */
         setHashObject: function (hashObject) {
             var ps = [];
@@ -149,8 +154,10 @@
             return this;
         },
         /**
-        * http://test.example.com:8080/some/path?key=value => value; have key, return "", or value; don't have key, return null
+        * http://test.example.com:8080/some/path?a=b#c=d => value; have key, return "", or value; don't have key, return null
         * return: not return null
+        * @param {Object} hashObject
+        * @return {Object} Hash的内容部分
         */
         getQuery: function (key, url) {
             if (!url) url = window.location.href;
@@ -161,6 +168,12 @@
             if (!results[2]) return '';
             return decodeURIComponent(results[2].replace(/\+/g, " "));
         },
+        /**
+        * http://test.example.com:8080/some/path?a=b#c=d => value; have key, return "", or value; don't have key, return null
+        * return: not return null
+        * @param {Object} hashObject
+        * @return {Object} Hash的内容部分
+        */
         setQuery: function (key, value, url) {
             var url = url || window.location.toString();
             if (url.indexOf("?") < 0) {
@@ -184,15 +197,47 @@
 
             return result;
         },
+        /**
+        * http://test.example.com:8080/some/path?a=b#c=d => key: a; http://test.example.com:8080/some/path?#c=d
+        * @param {string} key: string
+        * @param {object} url: http://test.example.com:8080/some/path?a=b#c=d
+        * @return {Object} url or null
+        */
+        replaceQuery: function (key, url) {
+            if (url.indexOf("?") < 0) {
+                return url + "?" + paramName + "=" + newValue;
+            }
+            var isExistThisParam = false;
+            var uri_array = url.split('?'); // break up url/query
+            var params_array = uri_array[1].split('&'); // break up the query
+            var items_array = new Array;
+            for (i = 0; i < params_array.length; i++) {
+                items_array = params_array[i].split('='); // split name/value pairs
+                if (items_array[0].toLowerCase() == paramName.toLowerCase()) {
+                    isExistThisParam = true;
+                    params_array[i] = items_array[0] + '=' + newValue;
+                } // end if
+            } // end for i
+            var result = uri_array[0] + '?' + params_array.join('&');
+            if (!isExistThisParam) {
+                result += "&" + paramName + "=" + newValue;
+            }
+
+            return result;
+        },
+        /**
+        * http://test.example.com:8080/some/path?a=b#c=d => key: a; http://test.example.com:8080/some/path?#c=d
+        * @param {string} key: string
+        * @param {object} url: http://test.example.com:8080/some/path?a=b#c=d
+        * @return {Object} url or null
+        */
         removeQuery: function (key, url) {
             var url = url || window.location.toString();
             //prefer to use l.search if you have a location/link object
             var urlparts = url.split('?');
             if (urlparts.length >= 2) {
-
                 var prefix = encodeURIComponent(key) + '=';
                 var pars = urlparts[1].split(/[&;]/g);
-
                 //reverse iteration as may be destructive
                 for (var i = pars.length; i-- > 0;) {
                     //idiom for string.startsWith
@@ -210,17 +255,17 @@
     };
 
     var registeredInModuleLoader = false;
-   	if (typeof define === 'function' && define.amd) {
-   		define(urlHelper);
-   		registeredInModuleLoader = true;
-   	}
-   	if (typeof exports === 'object') {
-   		module.exports = urlHelper
-   		registeredInModuleLoader = true;
-   	}
-   	if (!registeredInModuleLoader) {
-   		window.urlHelper = urlHelper
-   	}
+    if (typeof define === 'function' && define.amd) {
+        define(urlHelper);
+        registeredInModuleLoader = true;
+    }
+    if (typeof exports === 'object') {
+        module.exports = urlHelper
+        registeredInModuleLoader = true;
+    }
+    if (!registeredInModuleLoader) {
+        window.urlHelper = urlHelper
+    }
 
     return urlHelper;
 }());

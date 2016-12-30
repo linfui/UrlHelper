@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Url-helper<title>
+  <script src="js/jquery-ui.min.js"></script>
+  <script src="js/marked.js"></script>
+</head>
+<body>
+  <div id="content"></div>
+  <script>
+    $(function(){
+      $.get("/README.md" function (data) {
+          $("#content").html(marked(data));
+        });
+      });
+  </script>
+  <noscript>
+    <p><a href="README.md">查看文档</a></p>
+  </noscript>
+</body>
+</html>
