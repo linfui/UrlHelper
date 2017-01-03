@@ -13,7 +13,7 @@
         getHost: function (url) {
             var url = url || window.location.toString();
             var tmp;
-            if (tmp = url.match(/(.*?)\:?\/\/(.*)/)) {
+            if (tmp = url.match(/(.*?)\:?\/\/(.*?)(?=\/)/)) {
                 url = tmp[2];
             }
             return url;
@@ -24,11 +24,8 @@
         * @return {string} E.G. test.www.example.com
         */
         getHostname: function (url) {
-            var url = url || window.location.toString();
-            var tmp;
-            if (tmp = url.match(/(.*?)\:?\/\/(.*)/)) {
-                url = tmp[2];
-            }
+            var url = this.getHostname(url);
+            var name = url.split(':')[0];
             return url;
         },
         /**
@@ -46,11 +43,22 @@
         },
         /**
         * http://test.example.com:8080/some/path?a=b#c=d => /some/path
+        * http://test.example.com:8080/?a=b#c=d => ''
+        * http://test.example.com:8080?a=b#c=d => ''
         * @param {string}   http://test.example.com:8080/some/path?a=b#c=d
         * @return {string} E.G. /some/path
         */
         getPathName: function (url) {
-            return
+            var url = url || window.location.toString();
+            var protocol, tmp;
+            var path = '';
+            if (tmp = url.match(/(.*?)\:?\/\/(.*?)(?=\?)/)) {
+                var firstIndex = tmp[2].indexOf('/');
+                if (firstIndex >= 0){
+                    path = tmp[2].substr(0, firstIndex);
+                }
+            }
+            return path;
         },
         /**
         * http://test.example.com:8080/some/path?a=b#c=d => 8080
@@ -59,53 +67,67 @@
         * @return {string} E.G. 80, 443
         */
         getPort: function (url) {
-            var url = url || window.location.toString();
+            var url = this.getHost(url);
             var port, tmp;
-            if (tmp = url.match(/(.*)\:([0-9]+)$/)) {
-                port = tmp[1].toLowerCase();
+            if (tmp = url.match(/([0-9]+)/)) {
+                port = tmp[0];
             }
             var protocol = this.getProtocol(url);
             port = port || (protocol === 'https' ? '443' : '80');
             return port;
         },
         /**
-        * http://test.example.com:8080/some/path?a=b#c=d => ?a=b
+        * http://test.example.com:8080/some/path?a=b#c=d => a=b
          * @param {string} E.G. http://test.example.com:8080/some/path?a=b#c=d
-         * @return {string} E.G. ?a=b
+         * @return {string} E.G. a=b
          */
-        getSearch: function () {
-            return location.hash.split('#')[1];
+        getSearch: function (url) {
+            var url = url || window.location.toString();
+            var s, tmp;
+            if (tmp = url.match(/[?](.*?)(?=\#)/)) {
+                s = tmp[0].split('?')[1];
+            }
+            return s;
+        },
+        /*****************************hash************************************/
+        /**
+        * http://test.example.com:8080/some/path?a=b#c=d => c=d
+         * @param {string} E.G. http://test.example.com:8080/some/path?a=b#c=d
+         * @return {string} E.G. c=d
+         */
+        getHashStr: function (url) {
+            var url = url || window.location.toString();
+            var s, tmp;
+            if (tmp = url.match(/[#](.*?)$/)) {
+                s = tmp[0].split('#')[1];
+            }
+            return s;
         },
         /**
-        * http://test.example.com:8080/some/path?a=b#c=d => #c=d
-         * @param {string} E.G. http://test.example.com:8080/some/path?a=b#c=d
-         * @return {string} E.G. #c=d
-         */
-        getHashStr: function () {
-            return location.hash.split('#')[1];
-        },
-        /**
-        * http://test.example.com:8080/some/path?a=b#c=d => #c=d
+        * location can  not be null
          * @param {string}
-         * @return {string} E.G. ?a=b#a=b
+         * @return {string}  location.href
          */
-        setHashStr: function (hashStr) {
+        setHashStr: function (hashStr, url) {
             location.hash = '#' + hashStr;
+            return window.location.toString();
         },
         /**
          * 按Key-Value的方式设置Hash信息，已设置的会被覆盖，空Value的会被删除
          *
          * @param {string} key   Hash的key
          * @param {string} value Hash的value
+         * @return {string}  location.href
          */
         setHash: function (key, value) {
-            var hashObj = this.getHashObject();
+            var hashObj = this.getHashs();
             hashObj[key] = value;
             //删除没有至的hash
             if (!value) {
                 delete hashObj[key];
             }
-            this.setHashObject(hashObj);
+            this.setHashs(hashObj);
+            return window.location.toString();
         },
         /**
          * 按Hash的key获取Hash的内容
@@ -113,8 +135,8 @@
          * @param  {string} key 要获取的Hash的键值
          * @return {string}     键值对应的HASH内容
          */
-        getHash: function (key) {
-            return this.getHashObject()[key];
+        getHash: function (key, url) {
+            return this.getHashs(url)[key];
         },
         /**
          * 获取完整的Hash内容，并应设为对象
@@ -122,8 +144,8 @@
          * @param  {string} key 要获取的Hash的键值
          * @return {Object} Hash的内容部分
          */
-        getHashs: function () {
-            var hashStr = this.getHash();
+        getHashs: function (url) {
+            var hashStr = this.getHashStr(url);
             var result = {};
             if (hashStr) {
                 var para = hashStr.split('&');
@@ -142,7 +164,7 @@
          * @param {Object} hashObject
          * @return {Object} Hash的内容部分
          */
-        setHashObject: function (hashObject) {
+        setHashs: function (hashObject) {
             var ps = [];
             for (var i in hashObject) {
                 if (hashObject.hasOwnProperty(i)) {
@@ -153,6 +175,7 @@
             this.setHashStr(hashCode);
             return this;
         },
+        /*************************query***************************************/
         /**
         * http://test.example.com:8080/some/path?a=b#c=d => value; have key, return "", or value; don't have key, return null
         * return: not return null
@@ -203,7 +226,7 @@
         * @param {object} url: http://test.example.com:8080/some/path?a=b#c=d
         * @return {Object} url or null
         */
-        replaceQuery: function (key, url) {
+        replaceQuery: function (key, value, url) {
             if (url.indexOf("?") < 0) {
                 return url + "?" + paramName + "=" + newValue;
             }
